@@ -1,46 +1,67 @@
 import rumps
 import applescript
 
-rumps.debug_mode(True)
 
-class AwesomeStatusBarApp(rumps.App):
+class Mactify(rumps.App):
     def __init__(self):
-        self.config = {
-            "app_name": "Awesome App",
-        }
-        super(AwesomeStatusBarApp, self).__init__("Awesome App")
-        self.app = rumps.App(self.config["app_name"])
-        self.menu = ["Preferences", "Silly button", "Say hi"]
+        super(Mactify, self).__init__(type(self).__name__, menu=['Next Track', 'Previous Track'], icon='icon/spotify-sketch.png')
     
-    # @rumps.clicked("Get Current Song playing")
-    # def get_spotify_current_song(self, _):
-    #     scpt = applescript.AppleScript('''
-    #     on getCurrentlyPlayingTrack()
-    #       tell application "Spotify"
-    #         set currentArtist to artist of current track as string
-    #         set currentTrack to name of current track as string
-          
-    #         return currentArtist & " - " & currentTrack
-    #       end tell
-    #     end getCurrentlyPlayingTrack
-    #     ''')
+    @rumps.clicked('Next Track')
+    def next_button(self, sender):
+        scpt = applescript.AppleScript('''
+            on changeToNextTrack()
+                if application "Spotify" is running then
+                    tell application "Spotify"
+                        next track
+                    end tell
+                else
+                    return ""
+                end if
+            end changeToNextTrack
+        ''')
+        result = scpt.call('changeToNextTrack')
+        if result == "":
+            rumps.alert(message='There is no song currently playing', ok='OK!')
 
-    @rumps.clicked("Change title")
-    def change_title(self, sender):
-        sender.title = "It's been changed!"
-
-
-    @rumps.clicked("Preferences")
-    def prefs(self, _):
-        rumps.alert("jk! no preferences available!")
-
-    @rumps.clicked("Silly button")
-    def onoff(self, sender):
-        sender.state = not sender.state
-
-    @rumps.clicked("Say hi")
-    def sayhi(self, _):
-        rumps.notification("Awesome title", "amazing subtitle", "hi!!1")
+    @rumps.clicked('Previous Track')
+    def prev_button(self, sender):
+        scpt = applescript.AppleScript('''
+            on changeToPrevTrack()
+                if application "Spotify" is running then
+                    tell application "Spotify"
+                        previous track
+                    end tell
+                else
+                    return ""
+                end if
+            end changeToPrevTrack
+        ''')
+        result = scpt.call('changeToPrevTrack')
+        if result == "":
+            rumps.alert(message='There is no song currently playing', ok='OK!')
+    
+    @rumps.timer(1)
+    def get_current_song_title(self, sender):
+        scpt = applescript.AppleScript('''
+            on getCurrentlyPlayingTrack()
+                if application "Spotify" is running then
+                    tell application "Spotify"
+                        if player state is playing then
+                            set currentArtist to artist of current track
+                            set currentTrack to name of current track
+                            
+                            return currentArtist & " - " & currentTrack
+                        else
+                            return "No song is currently being played"
+                        end if
+                    end tell
+                else
+                    return "Mactify"
+                end if
+            end getCurrentlyPlayingTrack
+        ''')
+        title = scpt.call('getCurrentlyPlayingTrack')
+        self.title = title
 
 if __name__ == "__main__":
-    AwesomeStatusBarApp().run()
+    Mactify().run()
