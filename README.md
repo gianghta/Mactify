@@ -1,6 +1,7 @@
 # ![Spotify Logo](./icon/spotify-sketch.png) Mactify
 
 Dead simple MacOS status bar for your Spotify app.
+I needed something that just tell me what song I'm listening too without taking up storage.
 
 ## Features
 1. Display current song
